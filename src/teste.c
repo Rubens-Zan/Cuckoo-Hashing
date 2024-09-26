@@ -8,30 +8,30 @@ typedef enum {
     STRING
 } DataType;
 
-// Define MatrixValue union
+// Define Result_SetValue union
 typedef union {
     char *s; // Pointer to a string
     int i;   // Integer value
-} MatrixValue;
+} Result_SetValue;
 
-// Define MatrixElement struct
+// Define Result_SetElement struct
 typedef struct {
-    MatrixValue value;
+    Result_SetValue value;
     DataType type;
-} MatrixElement;
+} Result_SetElement;
 
-// Define Matrix struct
+// Define Result_Set struct
 typedef struct {
-    MatrixElement **elements; // Array of rows, each row is an array of MatrixElement (transposed: row of same "column")
+    Result_SetElement **elements; // Array of rows, each row is an array of Result_SetElement (transposed: row of same "column")
     DataType **types;         // Array of row types, each row has its own DataType array
     char **column_names;      // Array of column names
     int rows;
     int cols;
-} Matrix;
+} Result_Set;
 
 // Comparison function for qsort with multiple rows acting as columns
 int compare_columns(const void *a, const void *b, void *order_data) {
-    Matrix *matrix = ((Matrix **)order_data)[0];  // Matrix data
+    Result_Set *matrix = ((Result_Set **)order_data)[0];  // Result_Set data
     int *columns = ((int **)order_data)[1];       // Array of column indices (sorted priorities)
     int num_columns = ((int *)order_data)[2];     // Number of columns to sort by
     
@@ -42,8 +42,8 @@ int compare_columns(const void *a, const void *b, void *order_data) {
     for (int i = 0; i < num_columns; i++) {
         int row = columns[i];  // The row we're treating as a "column"
 
-        MatrixElement elem1 = matrix->elements[row][col1];
-        MatrixElement elem2 = matrix->elements[row][col2];
+        Result_SetElement elem1 = matrix->elements[row][col1];
+        Result_SetElement elem2 = matrix->elements[row][col2];
 
         // Compare based on the data type of the current row
         if (elem1.type == INT && elem2.type == INT) {
@@ -65,7 +65,7 @@ int compare_columns(const void *a, const void *b, void *order_data) {
 }
 
 // Function to sort matrix columns based on transposed rows with priority
-void sort_matrix_by_columns(Matrix *matrix, int *columns_to_sort_by, int num_columns) {
+void sort_matrix_by_columns(Result_Set *matrix, int *columns_to_sort_by, int num_columns) {
     // Create an array of column indices
     int *column_indices = malloc(matrix->cols * sizeof(int));
     for (int i = 0; i < matrix->cols; i++) {
@@ -79,9 +79,9 @@ void sort_matrix_by_columns(Matrix *matrix, int *columns_to_sort_by, int num_col
     qsort_r(column_indices, matrix->cols, sizeof(int), compare_columns, order_data);
 
     // Reorder the matrix columns based on the sorted indices
-    MatrixElement **sorted_elements = malloc(matrix->rows * sizeof(MatrixElement *));
+    Result_SetElement **sorted_elements = malloc(matrix->rows * sizeof(Result_SetElement *));
     for (int row = 0; row < matrix->rows; row++) {
-        sorted_elements[row] = malloc(matrix->cols * sizeof(MatrixElement));
+        sorted_elements[row] = malloc(matrix->cols * sizeof(Result_SetElement));
         for (int col = 0; col < matrix->cols; col++) {
             sorted_elements[row][col] = matrix->elements[row][column_indices[col]];
         }
@@ -99,14 +99,14 @@ void sort_matrix_by_columns(Matrix *matrix, int *columns_to_sort_by, int num_col
 
 int main() {
     // Create an example matrix
-    Matrix matrix;
+    Result_Set matrix;
     matrix.rows = 3;
     matrix.cols = 3;
 
     // Allocate memory for the matrix elements
-    matrix.elements = malloc(matrix.rows * sizeof(MatrixElement *));
+    matrix.elements = malloc(matrix.rows * sizeof(Result_SetElement *));
     for (int i = 0; i < matrix.rows; i++) {
-        matrix.elements[i] = malloc(matrix.cols * sizeof(MatrixElement));
+        matrix.elements[i] = malloc(matrix.cols * sizeof(Result_SetElement));
     }
 
     // Fill the matrix with example values (each row is actually a "column")
@@ -152,7 +152,7 @@ int main() {
     sort_matrix_by_columns(&matrix, columns_to_sort_by, 3);
 
     // Print the sorted matrix
-    printf("Sorted Matrix:\n");
+    printf("Sorted Result_Set:\n");
     for (int row = 0; row < matrix.rows; row++) {
         for (int col = 0; col < matrix.cols; col++) {
             if (matrix.elements[row][col].type == INT) {

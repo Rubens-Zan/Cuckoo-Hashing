@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "memory_handle.h"
+#include "result_set_handle.h"
 
-Matrix* allocateMatrix(int rows, int cols, char **column_names) {
-    Matrix *matrix = (Matrix*)malloc(sizeof(Matrix));
+Result_Set* allocateResult_Set(int rows, int cols, char **column_names) {
+    Result_Set *matrix = (Result_Set*)malloc(sizeof(Result_Set));
     if (matrix == NULL) {
         printf("Memory allocation failed for matrix structure.\n");
         return NULL;
@@ -13,7 +13,7 @@ Matrix* allocateMatrix(int rows, int cols, char **column_names) {
     matrix->rows = rows;
     matrix->cols = cols;
 
-    matrix->elements = (MatrixElement**)malloc(rows * sizeof(MatrixElement*));
+    matrix->elements = (Result_SetElement**)malloc(rows * sizeof(Result_SetElement*));
     matrix->types = (DataType**)malloc(rows * sizeof(DataType*));
     matrix->column_names = (char**)malloc(rows * sizeof(char*));
 
@@ -27,7 +27,7 @@ Matrix* allocateMatrix(int rows, int cols, char **column_names) {
     }
 
     for (int i = 0; i < rows; i++) {
-        matrix->elements[i] = (MatrixElement*)malloc(cols * sizeof(MatrixElement));
+        matrix->elements[i] = (Result_SetElement*)malloc(cols * sizeof(Result_SetElement));
         matrix->types[i] = (DataType*)malloc(cols * sizeof(DataType));
 
         if (matrix->elements[i] == NULL || matrix->types[i] == NULL) {
@@ -63,7 +63,7 @@ Matrix* allocateMatrix(int rows, int cols, char **column_names) {
     return matrix;
 }
 
-void setMatrixValue(Matrix *matrix, int row, int col, void *value, DataType type) {
+void setResult_SetValue(Result_Set *matrix, int row, int col, void *value, DataType type) {
     if (row > matrix->rows || col > matrix->cols) {
         printf("Index out of bounds. (%d,%d) [%d,%d]\n", row, col, matrix->rows, matrix->cols);
         return;
@@ -84,16 +84,16 @@ void setMatrixValue(Matrix *matrix, int row, int col, void *value, DataType type
     matrix->types[row][col] = type;
 }
 
-MatrixElement getMatrixValue(Matrix *matrix, int row, int col) {
+Result_SetElement getResult_SetValue(Result_Set *matrix, int row, int col) {
     if (row >= matrix->rows || col >= matrix->cols) {
         printf("Index out of bounds.\n");
-        MatrixElement empty;
-        return empty; // Return an empty MatrixElement
+        Result_SetElement empty;
+        return empty; // Return an empty Result_SetElement
     }
     return matrix->elements[row][col];
 }
 
-void printMatrix(Matrix *matrix, int row_count) {
+void printResult_Set(Result_Set *matrix, int row_count) {
     // Print column names
     // printf("Column Names:\n");
     for (int j = 0; j < matrix->rows; j++) {
@@ -112,7 +112,7 @@ void printMatrix(Matrix *matrix, int row_count) {
     // Print matrix elements
     for (int i = 0; i < matrix->row_count; i++) {
         for (int j = 0; j < matrix->rows; j++) {
-            MatrixElement elem = matrix->elements[j][i];
+            Result_SetElement elem = matrix->elements[j][i];
             if (elem.type == STRING_TYPE) {
                 printf("\t%s", elem.value.s);
             } else if (elem.type == INT_TYPE) {
@@ -123,7 +123,7 @@ void printMatrix(Matrix *matrix, int row_count) {
     }
 }
 
-void freeMatrix(Matrix *matrix) {
+void freeResult_Set(Result_Set *matrix) {
     for (int i = 0; i < matrix->row_count; i++) {
         for (int j = 0; j < matrix->rows; j++) {
             if (matrix->elements[i][j].type == STRING_TYPE && matrix->elements[i][j].value.s != NULL) {
@@ -143,11 +143,11 @@ void freeMatrix(Matrix *matrix) {
     free(matrix);
 }
 
-void printOutput(Matrix *matrix, int row_count) {
+void printOutput(Result_Set *matrix, int row_count) {
     for (int i = 0; i < matrix->row_count; i++) {
         for (int j = 0; j < matrix->rows - 1 ; j++) {
             
-            MatrixElement elem = matrix->elements[j][i];
+            Result_SetElement elem = matrix->elements[j][i];
             if (elem.type == INT_TYPE) {
                 if (j == 1){
                     printf("T%d,", elem.value.i );
@@ -156,7 +156,7 @@ void printOutput(Matrix *matrix, int row_count) {
                 }
             }
         }
-        MatrixElement elem = matrix->elements[matrix->rows-1][i];
+        Result_SetElement elem = matrix->elements[matrix->rows-1][i];
 
         printf("%d", elem.value.i);
 
@@ -164,6 +164,7 @@ void printOutput(Matrix *matrix, int row_count) {
         printf("\n");
     }
 }
+
 /*
 int main() {
     int rows = 3, cols = 3;
@@ -172,7 +173,7 @@ int main() {
     char *column_names[] = {"Name", "Age", "Zipcode"};
 
     // Allocate matrix
-    Matrix *matrix = allocateMatrix(rows, cols, column_names);
+    Result_Set *matrix = allocateResult_Set(rows, cols, column_names);
     if (matrix == NULL) {
         return 1;
     }
@@ -183,24 +184,24 @@ int main() {
     int zipcodes[] = {12, 120};
     int zipcode1 = 777;
     // Row 0
-    setMatrixValue(matrix, 0, 0, names[0], STRING_TYPE);
-    setMatrixValue(matrix, 0, 1, &ages[0], INT_TYPE);
-    setMatrixValue(matrix, 0, 2, &zipcodes[0], INT_TYPE);
+    setResult_SetValue(matrix, 0, 0, names[0], STRING_TYPE);
+    setResult_SetValue(matrix, 0, 1, &ages[0], INT_TYPE);
+    setResult_SetValue(matrix, 0, 2, &zipcodes[0], INT_TYPE);
 
     // Row 1
-    setMatrixValue(matrix, 1, 0, names[1], STRING_TYPE);
-    setMatrixValue(matrix, 1, 1, &ages[1], INT_TYPE);
-    setMatrixValue(matrix, 1, 2, &zipcodes[1], INT_TYPE);
+    setResult_SetValue(matrix, 1, 0, names[1], STRING_TYPE);
+    setResult_SetValue(matrix, 1, 1, &ages[1], INT_TYPE);
+    setResult_SetValue(matrix, 1, 2, &zipcodes[1], INT_TYPE);
     
     // Row 2
-    setMatrixValue(matrix, 2, 2, &zipcode1, INT_TYPE);
+    setResult_SetValue(matrix, 2, 2, &zipcode1, INT_TYPE);
 
     // Print matrix
-    printf("Matrix content:\n");
-    printMatrix(matrix);
+    printf("Result_Set content:\n");
+    printResult_Set(matrix);
 
     // Free matrix
-    freeMatrix(matrix);
+    freeResult_Set(matrix);
 
     return 0;
 }
